@@ -35,8 +35,8 @@ def send_ned_velocity(velocity_x, velocity_y, velocity_z, duration):
 
 
 # A test_function that order the drone to follow a rectangle
-# @params side_length is the length of the sides of the rectangle
-# @total_time is the time the drone will take to follow the rectangle
+# @param side_length is the length of the sides of the rectangle
+# @param total_time is the time the drone will take to follow the rectangle
 
 def follow_rectangle(side_length, total_time):
     speed = 4 * side_length / total_time

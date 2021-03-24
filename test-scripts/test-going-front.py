@@ -8,8 +8,9 @@ print 'Connecting to drone'
 inspection_drone = connect('tcp:127.0.0.1:5762', wait_ready=True)
 
 
-# Function taken from the dronekit documentation
-# Used here to test different movement and the
+# Function taken from the dronekit documentation :
+# https://dronekit-python.readthedocs.io/en/latest/guide/copter/guided_mode.html
+# Used here to test movement going forward
 def send_ned_velocity(velocity_x, velocity_y, velocity_z, duration):
     """
     Move vehicle in direction based on specified velocity vectors.
