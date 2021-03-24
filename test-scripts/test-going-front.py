@@ -4,6 +4,7 @@ import time
 
 # connection to drone, using tcp
 
+print 'Connecting to drone'
 inspection_drone = connect('tcp:127.0.0.1:5762', wait_ready=True)
 
 
@@ -29,14 +30,19 @@ def send_ned_velocity(velocity_x, velocity_y, velocity_z, duration):
         time.sleep(1)
 
 
-# Printing the drone current flight mode.
-# If the drone is passed in GUIDED flight mode, it goes forward for 5s at 0.3m/s.
-# Try to see if you can regain control at every moment
-is_being_tested = True
-while True:
-    print inspection_drone.mode
-    if inspection_drone.mode == VehicleMode('GUIDED') and is_being_tested:
-        print 'DRONE IS MOVING AUTONOMOUSLY'
-        send_ned_velocity(-0.3, 0, 0, 5)
-        is_being_tested = False
-    time.sleep(1)
+def test_go_forward():
+    # Printing the drone current flight mode.
+    # If the drone is passed in GUIDED flight mode, it goes forward for 5s at 0.3m/s.
+    # Try to see if you can regain control at every moment
+    is_being_tested = True
+    while True:
+        print inspection_drone.mode
+        if inspection_drone.mode == VehicleMode('GUIDED') and is_being_tested:
+            print 'DRONE IS MOVING AUTONOMOUSLY'
+            send_ned_velocity(-0.3, 0, 0, 5)
+            is_being_tested = False
+        time.sleep(1)
+
+
+print 'launching test-going-forward'
+test_go_forward()
