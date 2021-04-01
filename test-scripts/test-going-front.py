@@ -19,7 +19,7 @@ logging.info('test-going-front started')
 # Function taken from the dronekit documentation :
 # https://dronekit-python.readthedocs.io/en/latest/guide/copter/guided_mode.html
 # Used here to test movement going forward
-def send_ned_velocity(velocity_x, velocity_y, velocity_z, duration):
+def send_ned_velocity(velocity_x, velocity_y, velocity_z):
     """
     Move vehicle in direction based on specified velocity vectors.
     """
@@ -33,7 +33,15 @@ def send_ned_velocity(velocity_x, velocity_y, velocity_z, duration):
         0, 0, 0,  # x, y, z acceleration (not supported yet, ignored in GCS_Mavlink)
         0, 0)  # yaw, yaw_rate (not supported yet, ignored in GCS_Mavlink)
 
-    print "SENDING MAVLINK SIGNAL : GOING BACKWARD"
+    if velocity_x > 0 :
+        print "SENDING MAVLINK SIGNAL : GOING BACKWARD"
+        logging.info("SENDING MAVLINK SIGNAL : GOING BACKWARD")
+    if velocity_x == 0 :
+        print "SENDING MAVLINK SIGNAL : STATIONARY"
+        logging.info("SENDING MAVLINK SIGNAL : STATIONARY")
+    else:
+        print "MESSAGE WAS SENDED, IDK WHICH ONE"
+        logging.info("MESSAGE WAS SENT IDK WHICH ONE")
     inspection_drone.send_mavlink(msg)
 
 
@@ -41,53 +49,61 @@ def test_go_forward(drone, speed, test_time):
     # Printing the drone current flight mode.
     # When the drone is passed in GUIDED flight mode, it executes the following instructions :
     # stay stationary during 4 seconds
-    # goes forward seconds at 0.3m/s during test_time
+    # goes forward seconds at speed m/s during test_time
     # stop and stay stationary during 4 seconds
     # Try to see if you can regain control at every moment
-    current_flight_mode = drone.mode
+    print "Current flight mode is : %s " % drone.mode
     is_being_tested = True
-    launch_test = False
     total_test_time = test_time + 4 * 2
-    print_time = 0
-    while True:
-        current_time = time.time()
 
-        # Check when we first go into guided mode
-        if current_flight_mode != drone.mode:
-            if drone.mode == VehicleMode('GUIDED'):
-                launch_test = True
-                test_launch_time = time.time()
-                logging.warn("LAUNCH THE TEST")
-                print "LAUNCHED"
-            current_flight_mode = drone.mode
+    def launch_test():
 
-        if (time.time() - print_time) > 2:
-            print drone.mode
-            print_time = time.time()
+        start_time = time.time()
+        time_elapsed = time.time() - start_time
+        print start_time
+        logging.warn("STARTING TEST")
+        logging.info("  ")
+        while drone.mode == VehicleMode('GUIDED') and time_elapsed < total_test_time:
 
-        if drone.mode == VehicleMode('GUIDED') and launch_test and is_being_tested:
-            time_elapsed = current_time - test_launch_time
+            print time_elapsed
+            time_elapsed = time.time() - start_time
 
             # Wait still for 4 seconds
             if time_elapsed < 4:
+                print "wait phase"
                 logging.info("We wait for 4 seconds")
                 send_ned_velocity(0, 0, 0)
 
             # Perform the action for test_time
             if 4 < time_elapsed < 4 + test_time:
-                logging.info("We go forward for %s seconds" % test_time)
+                print "move phase"
+                logging.info("We go forward for 4 seconds")
                 send_ned_velocity(speed, 0, 0)
 
             # Wait still for 4 seconds after the action
             if 4 + test_time < time_elapsed < total_test_time:
+                print "wait phase 2"
                 logging.info("We wait for 4 seconds after performing the orders")
                 send_ned_velocity(0, 0, 0)
 
-            # If the test has been done, reset all parameters.
-            if time_elapsed > total_test_time:
-                logging.warn("TEST DONE")
-                launch_test = False
-                is_being_tested = False
+        # When the test has been done, reset all parameters.
+        logging.warn("TEST DONE,")
+
+    def mode_callback(self, attr_name, value):
+        print "Vehicule mode was changed to %s " % value
+        if value == VehicleMode('GUIDED'):
+            print "Callback triggered, launching test !"
+            launch_test()
+
+    drone.add_attribute_listener('mode', mode_callback)
+
+    time.sleep(2)
+
+    print 'added callback'
+
+    while True:
+
+
 
 
 print 'launching test-going-forward'

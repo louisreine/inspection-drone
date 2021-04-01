@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="RemoteMappingsManager">
+    <list>
+      <list>
+        <remote-mappings server-id="python@sftp://pi@raspberrypi.local:22/usr/bin/python">
+          <settings>
+            <list>
+              <mapping local-root="$PROJECT_DIR$/test-scripts" remote-root="/home/pi/Documents/test_scripts" />
+            </list>
+          </settings>
+        </remote-mappings>
+        <remote-mappings server-id="python@sftp://pi@raspberrypi.local:22/bin/python" />
+        <remote-mappings server-id="python@sshConfig://pi@raspberrypi.local:22 password/usr/bin/python" />
+      </list>
+    </list>
+  </component>
+</project>
