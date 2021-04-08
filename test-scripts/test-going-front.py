@@ -3,7 +3,7 @@ from pymavlink import mavutil
 import time
 import logging
 
-# connection to drone, using tcp
+# connection to drone, using serial
 print 'Connecting to drone'
 inspection_drone = connect('/dev/serial0', wait_ready=True, baud=921600)
 
@@ -33,10 +33,10 @@ def send_ned_velocity(velocity_x, velocity_y, velocity_z):
         0, 0, 0,  # x, y, z acceleration (not supported yet, ignored in GCS_Mavlink)
         0, 0)  # yaw, yaw_rate (not supported yet, ignored in GCS_Mavlink)
 
-    if velocity_x > 0 :
+    if velocity_x > 0:
         print "SENDING MAVLINK SIGNAL : GOING BACKWARD"
         logging.info("SENDING MAVLINK SIGNAL : GOING BACKWARD")
-    if velocity_x == 0 :
+    elif velocity_x == 0:
         print "SENDING MAVLINK SIGNAL : STATIONARY"
         logging.info("SENDING MAVLINK SIGNAL : STATIONARY")
     else:
@@ -102,6 +102,7 @@ def test_go_forward(drone, speed, test_time):
     print 'added callback'
 
     while True:
+        time.sleep(0.01)
 
 
 

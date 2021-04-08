@@ -10,7 +10,6 @@
 
 import smbus
 import time
-import matplotlib.pyplot as plt
 import datetime
 
 address = 0x70
@@ -66,9 +65,7 @@ def acquisition_distances(secondes):
     return Donnees, Donnees_brutes
 
 if __name__ == '__main__':
+    print("Launched the sonar code, have fun !")
     Distances, Vals = acquisition_distances(600)
-        
+            
 
-    plt.figure()
-    plt.plot(Distances)
-    plt.show()

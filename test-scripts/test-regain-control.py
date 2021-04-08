@@ -5,7 +5,7 @@ import time
 # connection to drone, using tcp
 
 print 'Connecting to drone'
-inspection_drone = connect('/dev/serial0', wait_ready=True)
+inspection_drone = connect('/dev/serial0', wait_ready=True, baud=921600)
 
 def test_regain_control():
     # Printing the drone current flight mode.
