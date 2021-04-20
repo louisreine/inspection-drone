@@ -5,7 +5,7 @@ import logging
 
 # connection to drone, using serial
 print 'Connecting to drone'
-inspection_drone = connect('/dev/serial0', wait_ready=True, baud=921600)
+inspection_drone = connect('/dev/serial0', wait_ready=True, baud=115200)
 
 # Log handling. Logs are saved in test-going-front.py
 
@@ -105,7 +105,5 @@ def test_go_forward(drone, speed, test_time):
         time.sleep(0.01)
 
 
-
-
 print 'launching test-going-forward'
-test_go_forward(inspection_drone, 0.1, 3)
+test_go_forward(inspection_drone, 0.5, 3)
