@@ -1,0 +1,25 @@
+CHECKLIST : TEST EN VOL
+
+Au Makerspace
+
+1. Ordinateur chargé
+2. Mission planner / QGroundControl à jour
+3. Batterie drone chargée
+4. Batterie Télécommande chargée
+5. Vérifier
+6. Vérifier la bonne attache des composants sur le drone
+7. Câbles bien branché / attachés (GPS, TELEM, UART, RC, ESC 1 2 3 4)
+8. Ordre des moteurs correct
+9. Sens de rotation des moteurs correct
+10. Mettre le raspberry pi en mode wifi ou lancement des scripts à l’allumage. Vérifier si les scripts se connectent bien au pixhawk.
+11. Mettre dans son sac :
+a. Des hélices de rechange
+b. Des pieds de rechange
+c. La télémétrie
+d. Une ou plusieurs clefs de 12 (hélices)
+
+Sur le Terrain
+1. Calibration du drone
+2. Ajuster les modes de vols
+3. Lancer les programmes Rapsberry pi
+4. Se mettre à 10m du drone

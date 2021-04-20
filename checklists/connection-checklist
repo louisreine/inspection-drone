@@ -1,0 +1,19 @@
+CHECKLIST : CONNEXION RASPBERRY – PIXHAWK4MINI
+
+1. Allumer le drone et vérifier les paramètres mavlink sur QGroundcontrol
+    a. Vérifier que le drone est sous le firmware Ardupilot
+    b. Vérifier que les paramètre SERIAL2_BAUD est définis pour un baudrate de 921600 (value = 921)
+    c. Vérifier que le mode de communication est MAVLINK2 (SERIAL2_PROTOCOL = 2)
+
+2. Vérifier les bons branchements du port UART/I2C sur le RaspberryPi. Laisser le 5V débranché pour l’instant.
+3. Brancher le raspberrypi sous usb-C (avec chargeur 5V/2A mini).
+4. Se brancher en SSH sur le raspberrypi
+5. Vérifier que le drone envoie des données avec « sudo screen /dev/serial0 ». Si le drone envoie des données, des caractères devraient apparaître pour confirmer la réception des données (points d’interrogation généralement). Si ces caractères n’apparaissent pas, il faut essayer d’inverser les pin RX/TX sur le raspberrypi. Une fois le debugage terminé, on quitte la fenêtre de screening avec « CTRL+A ; K ; Y » (CTRL + A permet d’accéder aux commandes screen, K pour kill et Y pour accepter de kill screen)
+6. Vérifier que la string de connexion est bien sur « /dev/serial0 » « wait_ready = True » et « baud = 921600 »
+7. Lancer le script et tester. Normalement vous devriez avoir une bonne connexion. Si non, redémarrer le rbp et relancer.
+8. Relancer le script avec une alimentation via la batterie du drone.
+
+REMARQUES :
+- Il faut installer screen sur le raspberry pi : """ sudo apt update """ """ sudo apt upgrade """ """ sudo apt install screen """
+- Chaque modification des paramètres du contrôleur de vol nécessite un petit reboot, au cas où. Généralement si tout fonctionne rebooter le drone est bénéfique.
+- Ça prend du temps, ne pas se laisser abattre !
