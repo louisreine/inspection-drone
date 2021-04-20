@@ -1,6 +1,6 @@
 # BOBBY THE DRONE
 
-![](/img/bobby_the_drone.png "Bobby, our beloved drone <3")
+<img src="/img/bobby_the_drone.png" width="250" height="250">
 
 ## Inspection drone project at ENPC (2020-2021)
 
