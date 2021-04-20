@@ -16,7 +16,7 @@ We use dronekit as our main mavlink environment : http://dronekit.io/
 
 For the moment we are in a testing phase, the test-scripts folders holds all the required scripts that test if your system is well functionning or not
 
-##How to install and use
+## How to install and use
 
 We run all of our scripts on a raspberry pi based on Raspberry PI OS (see : https://www.raspberrypi.org/documentation/)
 
