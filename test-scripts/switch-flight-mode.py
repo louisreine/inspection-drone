@@ -29,24 +29,24 @@ def RC_CHANNEL_listener(vehicle, name, message):
 
     if message.chan8_raw > 1500:
         print("Launching code !")
-        drone_change_mode()
+        drone_change_mode(vehicle)
 
 
-def drone_change_mode():
+def drone_change_mode(drone):
     start_time = time.time()
     total_time = 20
     elapsed_time = time.time() - start_time
     while elapsed_time < total_time:
         if elapsed_time < total_time / 3:
-            inspection_drone.mode = VehicleMode("AUTO")
+            drone.mode = VehicleMode("AUTO")
 
         if total_time / 3 < elapsed_time < total_time * 2 / 3:
-            inspection_drone.mode = VehicleMode("GUIDED")
+            drone.mode = VehicleMode("GUIDED")
 
         if total_time * 2 / 3 < elapsed_time < total_time:
-            inspection_drone.mode = VehicleMode("AUTO")
+            drone.mode = VehicleMode("AUTO")
 
-        print(inspection_drone.mode)
+        print(drone.mode)
 
 
 def set_rc(chnum, v):

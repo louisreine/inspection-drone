@@ -1,13 +1,11 @@
-from dronekit import connect, VehicleMode
-from pymavlink import mavutil
-import time
+from dronekit import connect
 import sys
 import importlib
-import os.path
 
 test_scripts = []
 for name_script in sys.argv[1:]:
     try:
+        print(name_script)
         test_scripts.append(importlib.import_module(name_script))
     except ImportError:
         print("%s was not imported because it doesn't exist" % name_script)
@@ -50,9 +48,9 @@ def RC_CHANNEL_listener(vehicle, name, message):
     if message.chan8_raw > 1500:
         print("Launching code !")
         if 0 < message < 200 :
-            test_scripts[0].launch_script(inspection_drone)
+            test_scripts[0].launch_test(inspection_drone)
         if 200 < message < 500 :
-            test_scripts[1].launch_script(inspection_drone)
+            test_scripts[1].launch_test(inspection_drone)
         if 500 < message < 900 :
-            test_scripts[2].launch_script(inspection_drone)
+            test_scripts[2].launch_test(inspection_drone)
 
