@@ -32,4 +32,4 @@ def set_rc(chnum, v):
 while True:
     # Get all channel values from RC transmitter
     print "Channel values from RC Tx:", inspection_drone.channels
-    time.sleep(0.5)
+    time.sleep(0.1)
