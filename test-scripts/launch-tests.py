@@ -1,16 +1,30 @@
-from dronekit import connect, VehicleMode
-from pymavlink import mavutil
-import time
-import logging
+from dronekit import connect
+import sys
+import importlib
 
+test_scripts = []
+for name_script in sys.argv[1:]:
+    try:
+        print(name_script)
+        test_scripts.append(importlib.import_module(name_script))
+    except ImportError:
+        print("%s was not imported because it doesn't exist" % name_script)
+
+
+
+# connection to drone, using serial
+
+print 'Connecting to drone'
 inspection_drone = connect('/dev/serial0', wait_ready=True, baud=115200)
 
+# Management of RC Channels to launch code
+# Every Channel is attributed to a knob on the transmitter.
+# We use a FUTABA TK12 as our main trasmitter, on which we mapped the different RC Channels
+# See the mapping in the "mapping.txt"
 
 def set_rc(chnum, v):
     inspection_drone._channels._update_channel(str(chnum), v)
 
-
-# Just a function to be sure that all rc channels are written in the vehicle.channel object
 @inspection_drone.on_message('RC_CHANNELS')
 def RC_CHANNEL_listener(vehicle, name, message):
     set_rc(1, message.chan1_raw)
@@ -33,26 +47,10 @@ def RC_CHANNEL_listener(vehicle, name, message):
 
     if message.chan8_raw > 1500:
         print("Launching code !")
-        drone_change_mode()
+        if 0 < message < 200 :
+            test_scripts[0].launch_test(inspection_drone)
+        if 200 < message < 500 :
+            test_scripts[1].launch_test(inspection_drone)
+        if 500 < message < 900 :
+            test_scripts[2].launch_test(inspection_drone)
 
-
-def drone_change_mode():
-    start_time = time.time()
-    total_time = 20
-    elapsed_time = time.time() - start_time
-    while elapsed_time < total_time:
-        if elapsed_time < total_time / 3:
-            inspection_drone.mode = VehicleMode("AUTO")
-
-        if total_time / 3 < elapsed_time < total_time * 2 / 3:
-            inspection_drone.mode = VehicleMode("GUIDED")
-
-        if total_time * 2 / 3 < elapsed_time < total_time:
-            inspection_drone.mode = VehicleMode("AUTO")
-
-        print(inspection_drone.mode)
-
-
-while True:
-    print("this is boring testing")
-    time.sleep(0.1)
