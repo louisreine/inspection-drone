@@ -2,7 +2,7 @@ from dronekit import connect, VehicleMode
 from pymavlink import mavutil
 import time
 
-# connection to drone, using tcp
+# connection to drone, using serial
 
 print 'Connecting to drone'
 inspection_drone = connect('/dev/serial0', wait_ready=True, baud=921600)

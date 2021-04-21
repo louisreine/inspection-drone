@@ -4,9 +4,9 @@ import time
 import logging
 
 logging.basicConfig(format='%(asctime)s %(message)s')
-logging.basicConfig(filename='test_rectangle_velocity.log', level=logging.DEBUG)
+logging.basicConfig(filename='follow-rectangle-velocity.log', level=logging.DEBUG)
 
-logging.info('test_rectangle_velocity started')
+logging.info('follow-rectangle-velocity started')
 
 # connection to drone, using tcp for testing, serial when not tested
 logging.info('connecting to drone')

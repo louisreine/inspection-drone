@@ -7,13 +7,13 @@ import logging
 print 'Connecting to drone'
 inspection_drone = connect('/dev/serial0', wait_ready=True, baud=115200)
 
-# Log handling. Logs are saved in test-going-front.py
+# Log handling. Logs are saved in go-forward.py
 
 
 logging.basicConfig(format='%(asctime)s %(message)s')
-logging.basicConfig(filename='test-going-front.log', level=logging.DEBUG)
+logging.basicConfig(filename='go forward.log', level=logging.DEBUG)
 
-logging.info('test-going-front started')
+logging.info('launching go forward')
 
 
 # Function taken from the dronekit documentation :
@@ -40,7 +40,7 @@ def send_ned_velocity(velocity_x, velocity_y, velocity_z):
         print "SENDING MAVLINK SIGNAL : STATIONARY"
         logging.info("SENDING MAVLINK SIGNAL : STATIONARY")
     else:
-        print "MESSAGE WAS SENDED, IDK WHICH ONE"
+        print "MESSAGE WAS SENT, IDK WHICH ONE"
         logging.info("MESSAGE WAS SENT IDK WHICH ONE")
     inspection_drone.send_mavlink(msg)
 
@@ -90,7 +90,7 @@ def test_go_forward(drone, speed, test_time):
         logging.warn("TEST DONE,")
 
     def mode_callback(self, attr_name, value):
-        print "Vehicule mode was changed to %s " % value
+        print "Vehicle mode was changed to %s " % value
         if value == VehicleMode('GUIDED'):
             print "Callback triggered, launching test !"
             launch_test()
