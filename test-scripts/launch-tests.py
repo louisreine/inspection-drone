@@ -11,6 +11,7 @@ inspection_drone = connect('/dev/serial0', wait_ready=True, baud=115200)
 # ------------------
 inspection_drone.testNumber = -1
 inspection_drone.startTime = time.time()
+inspection_drone.obstacleDetected = False
 print_time = time.time()
 
 # Speed and time going forward for test 1 : going forward
@@ -24,7 +25,6 @@ timeSide = sideLength / speedTest2
 totalTime = 4 * sideLength / speedTest2
 
 # Speed and side_length for test 3 : Auto mode then Guided and stop when there is an obstacle.
-# Going up, go forward, resumre mission
 SpeedTest3 = 0.1
 timeTest3 = 4
 
@@ -33,8 +33,6 @@ timeTest3 = 4
 # Every Channel is attributed to a knob on the transmitter.
 # We use a FUTABA TK12 as our main trasmitter, on which we mapped the different RC Channels
 # See the mapping in the "mapping.txt"
-def is_in_guided_mode(drone):
-    return drone.mode == VehicleMode("GUIDED")
 
 
 def set_rc(vehicle, chnum, v):
@@ -60,6 +58,10 @@ def RC_CHANNEL_listener(vehicle, name, message):
     set_rc(vehicle, 15, message.chan15_raw)
     set_rc(vehicle, 16, message.chan16_raw)
     vehicle.notify_attribute_listeners('channels', vehicle.channels)
+
+    if message.chan7_raw > 1500:
+        print("Obstacle Detected !")
+        inspection_drone.obstacleDetected = True
 
     if message.chan8_raw > 1500:
         print("Launching code !")
@@ -110,41 +112,78 @@ def send_mavlink_stay_stationary(drone):
     send_ned_velocity(drone, 0, 0, 0)
 
 
-def print_no_spam(print_time, string):
-    if time.time() - print_time > 2:
+def print_no_spam(start_print_time, string):
+    if time.time() - start_print_time > 2:
         print string
 
 
+def is_in_auto_mode(drone):
+    return drone.mode == VehicleMode("AUTO")
+
+
+def is_in_guided_mode(drone):
+    return drone.mode == VehicleMode("GUIDED")
+
+
+
 while True:
-    if is_in_guided_mode(inspection_drone):
 
-        if inspection_drone.testNumber == 0:
-            elapsed_time = time.time() - inspection_drone.startTime
+    if inspection_drone.testNumber == 0 and is_in_guided_mode(inspection_drone):
+        elapsed_time = time.time() - inspection_drone.startTime
 
-            if 0 < elapsed_time < 4:
+        if 0 < elapsed_time < 4:
+
+            send_mavlink_stay_stationary(inspection_drone)
+
+        elif 4 < elapsed_time < 4 + timeTest1:
+
+            send_mavlink_go_forward(inspection_drone, speedTest1)
+
+        elif 4 + timeTest1 < elapsed_time < 8 + timeTest1:
+
+            send_mavlink_stay_stationary(inspection_drone)
+
+        elif 8 + timeTest1 < elapsed_time:
+
+            inspection_drone.testNumber = -1
+            inspection_drone.startTime = time.time()
+
+    if inspection_drone.testNumber == 1 and is_in_guided_mode(inspection_drone):
+        elapsed_time = time.time() - inspection_drone.startTime
+        print_no_spam(elapsed_time)
+        if 0 < elapsed_time < timeSide:
+
+            send_mavlink_go_forward(inspection_drone, speedTest2)
+
+        if timeSide < elapsed_time < 2 * timeSide:
+
+            send_mavlink_go_left(inspection_drone, speedTest2)
+
+        if 2 * timeSide < elapsed_time < 3 * timeSide:
+
+            send_mavlink_go_backward(inspection_drone, speedTest2)
+
+        if 3 * timeSide < elapsed_time < 4 * timeSide:
+
+            send_mavlink_go_forward(inspection_drone, speedTest2)
+
+        elif 4 * timeSide < elapsed_time:
+
+            inspection_drone.testNumber = -1
+            inspection_drone.startTime = time.time()
+
+    if inspection_drone.testNumber == 2:
+
+        if is_in_guided_mode(inspection_drone) and not inspection_drone.obstacleDetected:
+            inspection_drone.mode = VehicleMode("AUTO")
+
+        if is_in_guided_mode(inspection_drone) and inspection_drone.obstacleDetected:
+            send_mavlink_stay_stationary(inspection_drone)
+
+        if is_in_auto_mode(inspection_drone):
+            if inspection_drone.obstacleDetected:
+                inspection_drone.mode = VehicleMode("GUIDED")
                 send_mavlink_stay_stationary(inspection_drone)
-            elif 4 < elapsed_time < 4 + timeTest1:
-                send_mavlink_go_forward(inspection_drone, speedTest1)
-            elif 4 + timeTest1 < elapsed_time < 8 + timeTest1:
-                send_mavlink_stay_stationary(inspection_drone)
-            elif 8 + timeTest1 < elapsed_time:
-                inspection_drone.testNumber = -1
-                inspection_drone.startTime = time.time()
-
-        if inspection_drone.testNumber == 1:
-            elapsed_time = time.time() - inspection_drone.startTime
-            print_no_spam(elapsed_time)
-            if 0 < elapsed_time < timeSide:
-                send_mavlink_go_forward(inspection_drone, speedTest2)
-            if timeSide < elapsed_time < 2 * timeSide:
-                send_mavlink_go_left(inspection_drone, speedTest2)
-            if 2 * timeSide < elapsed_time < 3 * timeSide:
-                send_mavlink_go_backward(inspection_drone, speedTest2)
-            if 3 * timeSide < elapsed_time < 4 * timeSide:
-                send_mavlink_go_forward(inspection_drone, speedTest2)
-            elif 4 * timeSide < elapsed_time:
-                inspection_drone.testNumber = -1
-                inspection_drone.startTime = time.time()
 
     print_no_spam(print_time, 'actual test is : %s ' % inspection_drone.testNumber)
 

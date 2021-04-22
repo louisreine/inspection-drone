@@ -18,3 +18,9 @@ channel; button; state min; state middle; state max; comment
 14 --; --; --; --; "not used"
 15 --; --; --; --; "not used"
 16 --; --; --; --; "not used"
+
+
+
+SF(2)                                           HS(2, push)
+    SE(3)                                   SG(3)
+      SR(3) SB(3) LD(An) RD(An) SC(3) SD(3)
