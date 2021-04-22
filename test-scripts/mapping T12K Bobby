@@ -1,4 +1,6 @@
 // This mapping is only relevant on T12K with Bobby's model defined on 20 April 2021
+// Please update this file when you change the settings of the transmitter !
+
 channel; button; state min; state middle; state max; comment
 1; x-axis right joystick; 1094; 1523; 1934; "max = right, min = left, this is roll"
 2; y-axis right joystick; 1094; 1514; 1934; "max = bottom, min = top, this is pitch"
@@ -7,7 +9,7 @@ channel; button; state min; state middle; state max; comment
 5; SR; 1094; 1514; 1934; "max is up, min is down, middle is center"
 6; SG; 1094; 1514; 1934; "max is up, min is down, middle is center"
 7; SF; 1094; -- ; 1934; "max is up, min is down, no middle because 2 position trigger"
-8; SG; 1094; -- ; 1934; "max is up, min is down, no middle because 2 position trigger, pushbutton"
+8; SH; 1094; -- ; 1934; "max is up, min is down, no middle because 2 position trigger, pushbutton"
 9; SR; 1094; 1514; 1934; "max is towards you, min is away from you, middle is center"
 10; SB; 1094; 1514; 1934; "max is towards you, min is away from you, middle is center"
 11; SC; 1094; 1514; 1934; "max is towards you, min is away from you, middle is center"

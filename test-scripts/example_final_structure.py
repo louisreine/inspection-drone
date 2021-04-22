@@ -1,11 +1,10 @@
 from dronekit import connect, VehicleMode
-from pymavlink import mavutil
 import time
-import logging
 
 print 'Connecting to drone'
 inspection_drone = connect('/dev/serial0', wait_ready=True, baud=115200)
 
+mission_running = False
 
 def set_rc(chnum, v):
     inspection_drone._channels._update_channel(str(chnum), v)
@@ -33,34 +32,8 @@ def RC_CHANNEL_listener(vehicle, name, message):
     vehicle.notify_attribute_listeners('channels', vehicle.channels)
 
     if message.chan8_raw > 1500:
-        print("Launching code !")
-        drone_change_mode(vehicle)
-
-
-def drone_change_mode(drone):
-    start_time = time.time()
-    total_time = 20
-    elapsed_time = time.time() - start_time
-    print_time = time.time() - start_time
-
-    while elapsed_time < total_time:
-        elapsed_time = time.time() - start_time
-        if elapsed_time < total_time / 3:
-            drone.mode = VehicleMode("AUTO")
-
-        if total_time / 3 < elapsed_time < total_time * 2 / 3:
-            drone.mode = VehicleMode("GUIDED")
-
-        if total_time * 2 / 3 < elapsed_time < total_time:
-            drone.mode = VehicleMode("AUTO")
-
-        print("time : %s" % elapsed_time)
-
-
-
-def set_rc(chnum, v):
-    inspection_drone._channels._update_channel(str(chnum), v)
+        print("hey")
 
 
 while True:
-    time.sleep(0.1)
+    time.sleep(0.001)
