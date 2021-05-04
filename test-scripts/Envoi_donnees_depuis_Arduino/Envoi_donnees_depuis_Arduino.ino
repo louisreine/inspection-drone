@@ -3,7 +3,7 @@
 // https://www.raspberrypi.org/forums/viewtopic.php?f=32&t=62714&p=465137&hilit=I2C+maxsonar#p465137
 
 /* Code for Arduino Uno R3
-  This asynchrone code reads data from two sensors a TFMini Plus and a Maxbotix Maxsonar I2C XL Z0
+  This asynchrone code reads data from two sensors : a TFMini Plus and a Maxbotix Maxsonar I2C XL Z0
   It then prints the data read on the serial port.
   We can then recover the data from this sensors on a Raspberry by connecting the Arduino and the Raspberry via their serial ports (USB).
   
