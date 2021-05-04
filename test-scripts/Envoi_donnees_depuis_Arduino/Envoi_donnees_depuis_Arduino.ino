@@ -1,14 +1,24 @@
+// ____________________________________________________________________________________
 // Initialisation
+// https://www.raspberrypi.org/forums/viewtopic.php?f=32&t=62714&p=465137&hilit=I2C+maxsonar#p465137
 
 /* Code for Arduino Uno R3
-  see the source for more information about sonar reading :  https://www.raspberrypi.org/forums/viewtopic.php?f=32&t=62714&p=465137&hilit=I2C+maxsonar#p465137
-  Assumes the sensor is using the default address
-  Sensor Connections:
-  Pin 7 to GND
-  Pin 6 to 5V
-  Pin 5 to SCL
-  Pin 4 to SDA
+  This asynchrone code reads data from two sensors a TFMini Plus and a Maxbotix Maxsonar I2C XL Z0
+  It then prints the data read on the serial port.
+  We can then recover the data from this sensors on a Raspberry by connecting the Arduino and the Raspberry via their serial ports (USB).
+  
+  Sonar Connections:
+  Pin 7 (black) to GND
+  Pin 6 (red) to 5V (or 3.3V)
+  Pin 5 (blue) to SCL
+  Pin 4 (green) to SDA
   Requires pull‑ups for SCL and SDA connected to 5V to work reliably
+
+  TFMini Connections:
+  Red cable to 5V
+  Black cable to GND
+  Blue cable to RX
+  White cable to TX
 */
 #include "Wire.h"
 //The Arduino Wire library uses the 7-bit version of the address, so the code example uses 0x70 instead of the 8‑bit 0xE0
@@ -22,6 +32,7 @@
 float previousSonarReading = millis(); // Gives the time (in ms) at which the previous sonar reading was done
 float previousLidarReading = millis(); // Gives the time (in ms) at which the previous lidar reading was done
 bool rangeToRead = false; // True if a range reading as been asked to the sonar and hasn't been read yet
+
 // ____________________________________________________________________________________
 
 void setup() {
@@ -30,6 +41,7 @@ void setup() {
 }
 
 void loop() {
+  // SONAR READING
   if (millis() - previousSonarReading > 110) {
     // It's best to allow at least 100ms between sonar reading for proprer acoustic dissipation
     // So we ask a range reading from the sonar every 110 ms
@@ -44,7 +56,7 @@ void loop() {
     rangeToRead = false; // We no longer have data to read
   }
 
-
+  // LIDAR READING
   if (millis() - previousLidarReading > 20) {
     // The default frame rate is equal to 100Hz
     // Thus we should ask for data from the Lidar every 10ms at least
@@ -62,8 +74,8 @@ void loop() {
     }
   }
 }
-// ____________________________________________________________________________________
-// Functions
+// _______________________________________________
+// TFMini function
 
 void getTFminiData(int* distance, int* strength) {
   /* Function that modifies the inputs distance and strenght and gives data from the TFMini
@@ -93,6 +105,8 @@ void getTFminiData(int* distance, int* strength) {
     }
   }
 }
+
+// Sonar functions
 
 void takeRangeReading() {
   /* Commands the sonar to take a range reading
