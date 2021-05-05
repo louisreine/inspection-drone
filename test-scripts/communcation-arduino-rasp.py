@@ -1,4 +1,4 @@
-from Range_Sensors import *
+from RangeSensors import *
 import matplotlib.pyplot as plt
 
 def obstacle_Detected(mySonar, myLidar, debug = False):
@@ -34,10 +34,8 @@ def print_Logs(mySonar, myLidar):
 S = Sonar()
 L = Lidar(40)
 
-runningTime = 10 # Time in s for which we collect the data
+runningTime = 600 # Time in s for which we collect the data
 
 while time.time() - S.startTime < runningTime:
-    if obstacle_Detected(S, L):
+    if obstacle_Detected(S, L, debug=True):
         print("\\n TU VAS TE PRENDRE LE MUR !! \\n")
-
-print_Logs(S, L)

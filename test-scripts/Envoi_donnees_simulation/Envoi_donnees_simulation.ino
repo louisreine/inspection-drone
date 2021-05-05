@@ -18,12 +18,12 @@
 float previousSonarReading = millis(); // Gives the time (in ms) at which the previous sonar reading was done
 float previousLidarReading = millis(); // Gives the time (in ms) at which the previous lidar reading was done
 bool rangeToRead = false; // True if a range reading as been asked to the sonar and hasn't been read yet
-float startTime = millis();
+unsigned long startTime = millis();
 
 // --------------------- PARAMS FOR SIMULATING THE SENSORS ----------------------------
-float range = 200;
-float switchTime = 10000; // Time (in ms) at which the simulated range goes from 200 to 30
-float switchPeriode = 10000; // Time (in ms) during which the range will go linearly from 200 to 30
+int range = 200;
+unsigned long switchTime = 200000; // Time (in ms) at which the simulated range goes from 200 to 30
+unsigned long switchPeriode = 10000; // Time (in ms) during which the range will go linearly from 200 to 30
 // ____________________________________________________________________________________
 
 void setup() {
@@ -32,7 +32,7 @@ void setup() {
 }
 
 void loop() {
-  float ellapsedTime = millis() - startTime;
+  unsigned long ellapsedTime = millis() - startTime;
   // SETTING THE RANGE
   if ((ellapsedTime > switchTime) and (range > 30)) {
     range = 200-(30-200)*switchTime/switchPeriode + ellapsedTime * (30 - 200) / switchPeriode;

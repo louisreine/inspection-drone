@@ -73,18 +73,20 @@ def RC_CHANNEL_listener(vehicle, name, message):
     if 1800 < message.chan6_raw < 2000:
         vehicle.selectedTest = 2
 
-
     if message.chan8_raw > 1500:
-        print("Launching code !")
-        vehicle.mode = VehicleMode("GUIDED")
-        vehicle.startTime = time.time()
-        if 0 < message.chan6_raw < 1200:
-            vehicle.testNumber = 0
-        if 1200 < message.chan6_raw < 1800:
-            vehicle.testNumber = 1
-        if 1800 < message.chan6_raw < 2000:
-            vehicle.testNumber = 2
-
+        if vehicle.testNumber != -1 and (time.time() - vehicle.startTime) > 1:
+            print("Launching code !")
+            vehicle.mode = VehicleMode("GUIDED")
+            vehicle.startTime = time.time()
+            if 0 < message.chan6_raw < 1200:
+                vehicle.testNumber = 0
+            if 1200 < message.chan6_raw < 1800:
+                vehicle.testNumber = 1
+            if 1800 < message.chan6_raw < 2000:
+                vehicle.testNumber = 2
+        else:
+            vehicle.testNumber = -1
+            print("Stopped Test using Transmitter input")
 
 def send_ned_velocity(drone, velocity_x, velocity_y, velocity_z):
     """
@@ -104,6 +106,7 @@ def send_ned_velocity(drone, velocity_x, velocity_y, velocity_z):
 
 
 def send_mavlink_go_forward(drone, velocity):
+    print()
     send_ned_velocity(drone, velocity, 0, 0)
 
 

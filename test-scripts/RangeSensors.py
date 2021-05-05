@@ -10,7 +10,6 @@ and the Arduino sends their data to the raspberry throughout its serial port (US
 
 import serial
 import time
-import matplotlib.pyplot as plt
 
 SER = serial.Serial("/dev/ttyACM0",115200)  # change ACM number as found from ls /dev/tty/ACM*
 SER.baudrate=115200
@@ -26,14 +25,13 @@ def readSensorsLine():
 
 
 def debugSerial():
-    for i in range(20):
-        print(readSensorsLine())
+    print(readSensorsLine())
 
 # -------- Parent range sensor class ---------
 
 class RangeSensor:
     """ Class that defines a general range sensor. It cannot read data because this function is specific to each sensors.
-    Thus this class cannot be used by itself but is very useful for the lidar and sonar child classes """ 
+    Thus this class cannot be used by itself but is very useful for the lidar and sonar child classes """
     def __init__(self, _criticalDistance = DEFAULT_CRITICAL_DISTANCE):
         self.name = "Range sensor"
         self.range = 999
@@ -43,52 +41,49 @@ class RangeSensor:
         self.time_log = [] # type: List[float]
         # time_log : stores the time the range was stored in the log (in ms)
         self.startTime = time.time() # startTime : stores the time at which the object was created (in ms)
-    
+
     def get_last_index_range(self, range_string, first_index_range):
         """ Function that takes as input a string to read and the index of the first byte of the data we want to get (in cm)
         and returns the index of the last byte containing the data in cm.
         This function is used with the data given in the following example format : b'Sonar_Range:57\\r\\n'
         where we want to recover the '57'
         """
-        
+
         first_index_range += 1 # first index range becomes, from here, the last_index_range
         while True:
             if range_string[first_index_range:first_index_range+1] == "\\":
                 return first_index_range
             first_index_range += 1
-                    
+
     def critical_Distance_Reached(self):
         """ Checks if the range is inferior to the critical distance of the sensor
         Returns True if that's the case, False otherwise"""
-        
+
         if self.range < self.criticalDistance:
             return True
         return False
-    
+
     def get_distance(self):
         """Returns the last distance read by the sensor"""
         return self.range
-    
+
     def set_distance(self, distanceValue):
         """Modifies the range value stored by the object.
         In the meantimes, it stores this value and the time it was written in a list"""
         self.range = distanceValue
         self.log.append(distanceValue)
         self.time_log.append(time.time() - self.startTime)
-    
-    def see_log(self):
-        """Plots the history of the data"""
-        plt.plot(self.time_log, self.log, label = self.name)
+
 
 # -------- Childs : special range sensors classes ---------
-    
+
 class Sonar(RangeSensor):
     """Class for a specific range sensor : the MaxSonar I2CXL EZ0"""
     def __init__(self, _criticalDistance = DEFAULT_CRITICAL_DISTANCE):
         """Constructor : can take as input the critical distance of the sensor under which we detect an obstacle"""
         super().__init__(_criticalDistance) # Calls the constructor of the parent class, which define a general range sensor
         self.name = "Sonar"
-        
+
     def read_distance(self, read_ser = readSensorsLine()):
         """Gets the range given by the sensor connected to the Arduino
         Returns False if no data is read and True otherwise.
@@ -103,14 +98,14 @@ class Sonar(RangeSensor):
             self.set_distance(int(read_ser[14:last_index_range]))
             return True
         return False
-        
+
 class Lidar(RangeSensor):
     """Class for a specific range sensor : the TFMini Plus"""
     def __init__(self, _criticalDistance = DEFAULT_CRITICAL_DISTANCE):
         """Constructor : can take as input the critical distance of the sensor under which we detect an obstacle"""
         super().__init__(_criticalDistance) # Calls the constructor of the parent class, which define a general range sensor
         self.name = "Lidar"
-    
+
     def read_distance(self, read_ser = readSensorsLine()):
         """Gets the range given by the sensor connected to the Arduino
         Returns False if no data is read and True otherwise.
