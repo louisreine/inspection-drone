@@ -12,12 +12,13 @@ GPIO.setup(buzzer, GPIO.OUT)
 print 'Connecting to drone'
 inspection_drone = connect('/dev/serial0', wait_ready=True, baud=115200)
 
-#Define global parameters
+# Define global parameters
 inspection_drone.mission_running = False
 inspection_drone.obstacleDetected = False
 inspection_drone.timeLastObstacleDetected = time.time()
 startTime = time.time()
 elapsedTime = 0
+
 
 def set_rc(chnum, v):
     inspection_drone._channels._update_channel(str(chnum), v)
@@ -116,7 +117,7 @@ lidar = Lidar(40)
 
 starTime = time.time()
 while True:
-    #Update time
+    # Update time
     elapsedTime = time.time() - startTime
 
     inspection_drone.obstacleDetected = obstacle_detected(sonar, lidar, debug=True)
@@ -147,7 +148,5 @@ while True:
                 GPIO.output(buzzer, GPIO.HIGH)
             if int(elapsedTime) % 2 == 1:
                 GPIO.output(buzzer, GPIO.LOW)
-
-
 
     time.sleep(0.001)

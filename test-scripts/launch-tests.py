@@ -1,6 +1,14 @@
 from dronekit import connect, VehicleMode
 from pymavlink import mavutil
 import time
+import RPi.GPIO as GPIO
+
+
+# Select GPIO mode
+GPIO.setmode(GPIO.BCM)
+# Set buzzer - pin 23 as output
+buzzer = 23
+GPIO.setup(buzzer, GPIO.OUT)
 
 # connection to drone, using serial
 print 'Connecting to drone'
@@ -9,8 +17,10 @@ inspection_drone = connect('/dev/serial0', wait_ready=True, baud=115200)
 # ------------------
 # Parameters
 # ------------------
+
 inspection_drone.selectedTest = 0
 inspection_drone.testNumber = -1
+inspection_drone.timeSinceLastLaunchInput = time.time()
 inspection_drone.startTime = time.time()
 inspection_drone.obstacleDetected = False
 inspection_drone.timeLastObstacleDetected = 0
@@ -66,6 +76,10 @@ def RC_CHANNEL_listener(vehicle, name, message):
         inspection_drone.obstacleDetected = True
         inspection_drone.timeLastObstacleDetected = time.time()
 
+    if message.chan7_raw < 1500 and inspection_drone.obstacleDetected:
+        print("No obstacle anymore !")
+        inspection_drone.obstacleDetected = False
+
     if 0 < message.chan6_raw < 1200:
         vehicle.selectedTest = 0
     if 1200 < message.chan6_raw < 1800:
@@ -74,7 +88,7 @@ def RC_CHANNEL_listener(vehicle, name, message):
         vehicle.selectedTest = 2
 
     if message.chan8_raw > 1500:
-        if vehicle.testNumber != -1 and (time.time() - vehicle.startTime) > 1:
+        if vehicle.testNumber == -1 and (time.time() - vehicle.startTime) > 0.4:
             print("Launching code !")
             vehicle.mode = VehicleMode("GUIDED")
             vehicle.startTime = time.time()
@@ -106,23 +120,27 @@ def send_ned_velocity(drone, velocity_x, velocity_y, velocity_z):
 
 
 def send_mavlink_go_forward(drone, velocity):
-    print()
+    print "Going forward"
     send_ned_velocity(drone, velocity, 0, 0)
 
 
 def send_mavlink_go_left(drone, velocity):
+    print "Going left"
     send_ned_velocity(drone, 0, -velocity, 0)
 
 
 def send_mavlink_go_right(drone, velocity):
+    print "Going right"
     send_ned_velocity(drone, 0, velocity, 0)
 
 
 def send_mavlink_go_backward(drone, velocity):
+    print "Going backward"
     send_ned_velocity(drone, -velocity, 0, 0)
 
 
 def send_mavlink_stay_stationary(drone):
+    print "Stopping"
     send_ned_velocity(drone, 0, 0, 0)
 
 
@@ -142,6 +160,7 @@ def is_in_guided_mode(drone):
 while True:
 
     if inspection_drone.testNumber == 0 and is_in_guided_mode(inspection_drone):
+
         elapsed_time = time.time() - inspection_drone.startTime
         print(elapsed_time)
 
@@ -185,6 +204,10 @@ while True:
 
     if inspection_drone.testNumber == 2:
 
+        elapsed_time = time.time() - inspection_drone.startTime
+        print(elapsed_time)
+        print(inspection_drone.mode)
+
         if is_in_guided_mode(inspection_drone) and not inspection_drone.obstacleDetected:
             if time.time() - inspection_drone.timeLastObstacleDetected > 2:
                 inspection_drone.mode = VehicleMode("AUTO")
@@ -200,6 +223,15 @@ while True:
                 send_mavlink_stay_stationary(inspection_drone)
 
     print_no_spam(print_time, 'actual test is : %s ' % inspection_drone.selectedTest)
+
+    if inspection_drone.testNumber != -1:
+        print "Test %s is running" % inspection_drone.testNumber
+        if int(time.time() * 2 ) % 2 == 0:
+            GPIO.output(buzzer, GPIO.HIGH)
+        if int(time.time() * 2) % 2 == 1:
+            GPIO.output(buzzer, GPIO.LOW)
+    else:
+        GPIO.output(buzzer, GPIO.LOW)
 
     if time.time() - print_time > 2:
         print_time = time.time()
