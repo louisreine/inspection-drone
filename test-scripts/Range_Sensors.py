@@ -5,7 +5,7 @@ Authors : Thibaud Cambronne and Louis Reine
 
 In this file, we use 3 classes (1 parent and 2 childs) to read range data.
 Two sensors (a sonar and a lidar) are connected to an Arduino
-and the Arduino sends their data to the raspberry throught it's serial port (USB)
+and the Arduino sends their data to the raspberry throughout its serial port (USB)
 """
 
 import serial

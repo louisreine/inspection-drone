@@ -1,4 +1,5 @@
 from Range_Sensors import *
+import matplotlib.pyplot as plt
 
 def obstacle_Detected(mySonar, myLidar, debug = False):
     """ Function that takes as input two objects of type sonar and lidar
