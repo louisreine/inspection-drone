@@ -9,9 +9,11 @@ inspection_drone = connect('/dev/serial0', wait_ready=True, baud=115200)
 # ------------------
 # Parameters
 # ------------------
+inspection_drone.selectedTest = 0
 inspection_drone.testNumber = -1
 inspection_drone.startTime = time.time()
 inspection_drone.obstacleDetected = False
+inspection_drone.timeLastObstacleDetected = 0
 print_time = time.time()
 
 # Speed and time going forward for test 1 : going forward
@@ -62,6 +64,15 @@ def RC_CHANNEL_listener(vehicle, name, message):
     if message.chan7_raw > 1500:
         print("Obstacle Detected !")
         inspection_drone.obstacleDetected = True
+        inspection_drone.timeLastObstacleDetected = time.time()
+
+    if 0 < message.chan6_raw < 1200:
+        vehicle.selectedTest = 0
+    if 1200 < message.chan6_raw < 1800:
+        vehicle.selectedTest = 1
+    if 1800 < message.chan6_raw < 2000:
+        vehicle.selectedTest = 2
+
 
     if message.chan8_raw > 1500:
         print("Launching code !")
@@ -125,11 +136,11 @@ def is_in_guided_mode(drone):
     return drone.mode == VehicleMode("GUIDED")
 
 
-
 while True:
 
     if inspection_drone.testNumber == 0 and is_in_guided_mode(inspection_drone):
         elapsed_time = time.time() - inspection_drone.startTime
+        print(elapsed_time)
 
         if 0 < elapsed_time < 4:
 
@@ -150,17 +161,14 @@ while True:
 
     if inspection_drone.testNumber == 1 and is_in_guided_mode(inspection_drone):
         elapsed_time = time.time() - inspection_drone.startTime
-        print_no_spam(elapsed_time)
+        print(elapsed_time)
         if 0 < elapsed_time < timeSide:
-
             send_mavlink_go_forward(inspection_drone, speedTest2)
 
         if timeSide < elapsed_time < 2 * timeSide:
-
             send_mavlink_go_left(inspection_drone, speedTest2)
 
         if 2 * timeSide < elapsed_time < 3 * timeSide:
-
             send_mavlink_go_backward(inspection_drone, speedTest2)
 
         if 3 * timeSide < elapsed_time < 4 * timeSide:
@@ -175,7 +183,10 @@ while True:
     if inspection_drone.testNumber == 2:
 
         if is_in_guided_mode(inspection_drone) and not inspection_drone.obstacleDetected:
-            inspection_drone.mode = VehicleMode("AUTO")
+            if time.time() - inspection_drone.timeLastObstacleDetected > 2:
+                inspection_drone.mode = VehicleMode("AUTO")
+            else:
+                send_mavlink_stay_stationary(inspection_drone)
 
         if is_in_guided_mode(inspection_drone) and inspection_drone.obstacleDetected:
             send_mavlink_stay_stationary(inspection_drone)
@@ -185,7 +196,7 @@ while True:
                 inspection_drone.mode = VehicleMode("GUIDED")
                 send_mavlink_stay_stationary(inspection_drone)
 
-    print_no_spam(print_time, 'actual test is : %s ' % inspection_drone.testNumber)
+    print_no_spam(print_time, 'actual test is : %s ' % inspection_drone.selectedTest)
 
     if time.time() - print_time > 2:
         print_time = time.time()
