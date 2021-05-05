@@ -1,8 +1,6 @@
 """
 Date : 03/05/2020
 Authors : Thibaud Cambronne and Louis Reine
-
-
 In this file, we use 3 classes (1 parent and 2 childs) to read range data.
 Two sensors (a sonar and a lidar) are connected to an Arduino
 and the Arduino sends their data to the raspberry throughout its serial port (USB)
@@ -19,7 +17,7 @@ def readSensorsLine():
     """Function that reads the last line of data given by the sensors"""
     ligne_lue = str(SER.readline())
     # We are going to avoid some reading mistakes caused by an incomplete line
-    if len(ligne_lue) not in [20,21,22]: # The lenght of a line can be 20, 21 or 22, depending on the value of the range
+    if len(ligne_lue) not in [15,16,17]: # The lenght of a line can be 20, 21 or 22, depending on the value of the range
         ligne_lue = "No Data" # If the lenghts of the line read is not 20, 21 nor 22, there is an error
     return ligne_lue
 
@@ -51,7 +49,7 @@ class RangeSensor:
 
         first_index_range += 1 # first index range becomes, from here, the last_index_range
         while True:
-            if range_string[first_index_range:first_index_range+1] == "\\":
+            if range_string[first_index_range:first_index_range+1] == " ":
                 return first_index_range
             first_index_range += 1
 
@@ -81,7 +79,7 @@ class Sonar(RangeSensor):
     """Class for a specific range sensor : the MaxSonar I2CXL EZ0"""
     def __init__(self, _criticalDistance = DEFAULT_CRITICAL_DISTANCE):
         """Constructor : can take as input the critical distance of the sensor under which we detect an obstacle"""
-        super().__init__(_criticalDistance) # Calls the constructor of the parent class, which define a general range sensor
+        RangeSensor.__init__(self, _criticalDistance) # Calls the constructor of the parent class, which define a general range sensor
         self.name = "Sonar"
 
     def read_distance(self, read_ser = readSensorsLine()):
@@ -91,11 +89,11 @@ class Sonar(RangeSensor):
         Takes as input the line containing the data we want to read from the Arduino.
         If no line is given as input, we read a new line.
         """
-        if read_ser[2] == 'S':
+        if read_ser[0] == 'S':
             # The line with the data looks like that : "b'Sonar_Range:57\\r\\n'"
             # Thus, a line starting by S contains data from the Sonar
-            last_index_range = self.get_last_index_range(read_ser, 14)
-            self.set_distance(int(read_ser[14:last_index_range]))
+            # last_index_range = self.get_last_index_range(read_ser, 12)
+            self.set_distance(int(read_ser[12::]))
             return True
         return False
 
@@ -103,7 +101,7 @@ class Lidar(RangeSensor):
     """Class for a specific range sensor : the TFMini Plus"""
     def __init__(self, _criticalDistance = DEFAULT_CRITICAL_DISTANCE):
         """Constructor : can take as input the critical distance of the sensor under which we detect an obstacle"""
-        super().__init__(_criticalDistance) # Calls the constructor of the parent class, which define a general range sensor
+        RangeSensor.__init__(self, _criticalDistance) # Calls the constructor of the parent class, which define a general range sensor
         self.name = "Lidar"
 
     def read_distance(self, read_ser = readSensorsLine()):
@@ -113,12 +111,10 @@ class Lidar(RangeSensor):
         Takes as input the line containing the data we want to read from the Arduino.
         If no line is given as input, we read a new line.
         """
-        if read_ser[2] == 'L':
+        if read_ser[0] == 'L':
             # The line with the data looks like that : "b'Lidar_Range:174\\r\\n'"
             # Thus, a line starting by S contains data from the Sonar
-            last_index_range = self.get_last_index_range(read_ser, 14)
-            self.set_distance(int(read_ser[14:last_index_range]))
+            # last_index_range = self.get_last_index_range(read_ser, 12)
+            self.set_distance(int(read_ser[12::]))
             return True
         return False
-
-
