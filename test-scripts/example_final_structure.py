@@ -87,6 +87,7 @@ def send_mavlink_go_backward(drone, velocity):
 
 def send_mavlink_stay_stationary(drone):
     send_ned_velocity(drone, 0, 0, 0)
+    print("Stopping")
 
 
 def is_in_auto_mode(drone):
@@ -120,9 +121,11 @@ while True:
     # Update time
     elapsedTime = time.time() - startTime
 
-    inspection_drone.obstacleDetected = obstacle_detected(sonar, lidar, debug=True)
+    inspection_drone.obstacleDetected = obstacle_detected(sonar, lidar)
 
     if inspection_drone.mission_running:
+
+        print inspection_drone.mode
 
         if is_in_guided_mode(inspection_drone) and not inspection_drone.obstacleDetected:
             if time.time() - inspection_drone.timeLastObstacleDetected > 2:
@@ -138,15 +141,19 @@ while True:
                 inspection_drone.mode = VehicleMode("GUIDED")
                 send_mavlink_stay_stationary(inspection_drone)
 
-        if obstacle_detected(sonar, lidar):
-            if int(elapsedTime / 2) % 2 == 0:
+        if inspection_drone.obstacleDetected:
+            print "Obstacle detected"
+            if int(elapsedTime * 8) % 2 == 0:
                 GPIO.output(buzzer, GPIO.HIGH)
-            if int(elapsedTime / 2) % 2 == 1:
+            if int(elapsedTime * 8) % 2 == 1:
                 GPIO.output(buzzer, GPIO.LOW)
         else:
+            print "No obstacle"
             if int(elapsedTime) % 2 == 0:
                 GPIO.output(buzzer, GPIO.HIGH)
             if int(elapsedTime) % 2 == 1:
                 GPIO.output(buzzer, GPIO.LOW)
+    else:
+        GPIO.output(buzzer, GPIO.LOW)
 
     time.sleep(0.001)
