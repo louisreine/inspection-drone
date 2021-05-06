@@ -51,6 +51,9 @@ def RC_CHANNEL_listener(vehicle, name, message):
     if message.chan7_raw <= 1500:
         vehicle.mission_running = False
 
+def get_drone_location_ned(self):
+
+
 
 def send_ned_velocity(drone, velocity_x, velocity_y, velocity_z):
     """

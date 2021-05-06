@@ -1,3 +1,4 @@
+import warnings
 from dronekit import connect, VehicleMode, Vehicle
 from pymavlink import mavutil
 import time
@@ -5,26 +6,29 @@ import RPi.GPIO as GPIO
 
 
 class InspectionDrone(object):
-    def __init__(self, connection_string, baudrate, two_way_switches, three_way_switches, buzzerPin=None):
+    def __init__(self, connection_string, baudrate, two_way_switches, three_way_switches, buzzer_pin=None):
 
         # Initialize buzzer, making sure it is down
-        if buzzerPin is None:
+        if buzzer_pin is None:
             self._buzzerPin = 23
+        else:
+            self._buzzerPin = buzzer_pin
         GPIO.setmode(GPIO.BCM)
-        GPIO.setup(self._buzzerPin, GPIO.out)
+        GPIO.setup(self._buzzerPin, GPIO.OUT)
         GPIO.output(self._buzzerPin, GPIO.LOW)
 
         try:
+            print "Trying to connect to the drone"
             self.vehicle = connect(connection_string, baudrate, wait_ready=True)
         except Exception as e:
             print str(e)
             raise ValueError("Unable to connect to done")
-
+        print "Success"
         # Initialise switch states, Relies on T12K mapping
         self.switches = {}
         for key in two_way_switches:
             self.switches[key] = Switch(2)
-        for key in two_way_switches:
+        for key in three_way_switches:
             self.switches[key] = Switch(3)
 
         def set_rc(vehicle, chnum, value):
@@ -58,21 +62,70 @@ class InspectionDrone(object):
         self._obstacleDetected = False
         self._timeLastObstacleDetected = None
 
-    # Will update the switch
+    # Will update the switch. We enumerate every value in the vehicle.channels dictionnary, and set switch mode
+    # according to the mapping
     def update_switch_states(self):
-        for index, (key, value) in enumerate(self.vehicle.channels):
-            if key in self._two_way_switches:
+        for index, (key, value) in enumerate(self.vehicle.channels.items()):
+
+            if int(key) in self._two_way_switches:
                 if value < 1500:
-                    self.switches[key].set_state("down")
+                    self.switches[int(key)].set_state("down")
                 if value > 1500:
-                    self.switches[key].set_state("up")
-            if key in self._three_way_switches:
+                    self.switches[int(key)].set_state("up")
+
+            if int(key) in self._three_way_switches:
                 if value < 1200:
-                    self.switches[key].set_state("down")
+                    self.switches[int(key)].set_state("down")
                 if 1200 < value < 1800:
-                    self.switches[key].set_state("middle")
+                    self.switches[int(key)].set_state("middle")
                 if 1800 < value:
-                    self.switches[key].set_state("up")
+                    self.switches[int(key)].set_state("up")
+
+    def print_switches_states(self):
+        print(' ; '.join("{}: {}".format(k, v) for k, v in self.switches.items()))
+
+    def _send_ned_velocity(self, velocity_x, velocity_y, velocity_z):
+        """
+        Move vehicle in direction based on specified velocity vectors.
+        Modified version of the dronekit one, only sends 1 mavlink message
+        """
+        msg = self.vehicle.message_factory.set_position_target_local_ned_encode(
+            0,  # time_boot_ms (not used)
+            0, 0,  # target system, target component
+            mavutil.mavlink.MAV_FRAME_LOCAL_NED,  # frame
+            0b0000111111000111,  # type_mask (only speeds enabled)
+            0, 0, 0,  # x, y, z positions (not used)
+            velocity_x, velocity_y, velocity_z,  # x, y, z velocity in m/s
+            0, 0, 0,  # x, y, z acceleration (not supported yet, ignored in GCS_Mavlink)
+            0, 0)  # yaw, yaw_rate (not supported yet, ignored in GCS_Mavlink)
+
+        self.vehicle.send_mavlink(msg)
+
+    def send_mavlink_go_forward(self, velocity):
+        print "Going forward"
+        self._send_ned_velocity(velocity, 0, 0)
+
+    def send_mavlink_go_left(self, velocity):
+        print "Going left"
+        self._send_ned_velocity(0, -velocity, 0)
+
+    def send_mavlink_go_right(self, velocity):
+        print "Going right"
+        self._send_ned_velocity(0, velocity, 0)
+
+    def send_mavlink_go_backward(self, velocity):
+        print "Going backward"
+        self.send_ned_velocity(-velocity, 0, 0)
+
+    def send_mavlink_stay_stationary(self):
+        print "Stopping"
+        self.send_ned_velocity(0, 0, 0)
+
+    def is_in_auto_mode(self):
+        return self.mode == VehicleMode("AUTO")
+
+    def is_in_guided_mode(self):
+        return self.mode == VehicleMode("GUIDED")
 
 
 class Switch(object):
@@ -92,16 +145,28 @@ class Switch(object):
             self.set_state(initial_state)
 
     def __str__(self):
-        print self.state
+        return self.state
 
     def set_state(self, state):
         if not (state in ["up", "middle", "down"]):
-            raise ValueError("SwitchState must be either up, middle or down")
+            raise ValueError("set_state string argument must be either up, middle or down")
 
         if self.number_of_states == 3:
             self.state = state
 
-        if self.number_of_states == 2 and state != "middle":
+        elif self.number_of_states == 2 and state != "middle":
             self.state = state
+
         else:
             raise ValueError("middle is not an acceptable value for a 2-way switch")
+
+    def is_up(self):
+        return self.state == "up"
+
+    def is_down(self):
+        return self.state == "down"
+
+    def is_middle(self):
+        if self.number_of_states == 2:
+            warnings.warn("Warning : you tried to check whether a 2 state switch could be in the middle state")
+        return self.state == "middle"
