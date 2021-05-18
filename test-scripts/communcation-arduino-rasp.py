@@ -6,16 +6,16 @@ GPIO.setmode(GPIO.BCM)
 buzzer = 23
 GPIO.setup(buzzer, GPIO.OUT)
 
-def obstacle_Detected(mySonar, myLidar, debug = False):
+def obstacle_Detected(mySonar, myLidar, use_lidar, use_sonar, debug=False):
     """ Function that takes as input two objects of type sonar and lidar
     and that returns True if the distance they read is inferior to the critical distance defined for each of them
     The param debug has to be set to True if you want the data to be printed when uptdated"""
     read_serial = readSensorsLine()
     if mySonar.read_distance(read_serial) and debug:
-        print "Sonar range:" + str(S.get_distance())
+        print "Sonar range:" + str(mySonar.get_distance())
     if myLidar.read_distance(read_serial) and debug:
-        print "Lidar range:" + str(L.get_distance())
-    if mySonar.critical_Distance_Reached() or myLidar.critical_Distance_Reached():
+        print "Lidar range:" + str(myLidar.get_distance())
+    if (mySonar.critical_Distance_Reached() and use_sonar) or (use_lidar and myLidar.critical_Distance_Reached()):
         return True
     return False
 
@@ -36,10 +36,22 @@ def obstacle_Detected(mySonar, myLidar, debug = False):
 # We start by initializing our 2 sensors.
 # We can give as parameter the critical distance of the sensor (under which we detect an obstacle)
 # By default, the critical distance is 50 cm
-S = Sonar()
-L = Lidar(40)
+S = Sonar(30)
+L = Lidar(30)
+mesure_lidar = True
+mesure_sonar = False
 
-runningTime = 5 # Time in s for which we collect the data
-print "tu fais quoi la"
+runningTime = 60 # Time in s for which we collect the data
 while time.time() - S.startTime < runningTime:
-    if obstacle_Detected(S, L, True):
+    if obstacle_Detected(S,L,mesure_lidar,mesure_sonar,True):
+
+        if int(time.time() * 2) % 2 == 0:
+            GPIO.output(buzzer, GPIO.HIGH)
+        if int(time.time() * 2) % 2 == 1:
+            GPIO.output(buzzer, GPIO.LOW)
+
+    else :
+        GPIO.output(buzzer, GPIO.LOW)
+
+
+GPIO.output(buzzer, GPIO.LOW)
