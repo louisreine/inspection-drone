@@ -10,7 +10,7 @@ buzzer = 23
 GPIO.setup(buzzer, GPIO.OUT)
 
 print 'Connecting to drone'
-inspection_drone = connect('/dev/serial0', wait_ready=True, baud=115200)
+inspection_drone = connect('tcp:127.0.0.1:5760', wait_ready=True, baud=115200)
 
 # Define global parameters
 inspection_drone.mission_running = False
