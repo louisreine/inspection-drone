@@ -58,11 +58,15 @@ class InspectionDrone(object):
 
         self._two_way_switches = two_way_switches
         self._three_way_switches = three_way_switches
-        self._startTime = time.time()
-        self._obstacleDetected = False
-        self._timeLastObstacleDetected = None
+        self._start_time = time.time()
+        self._mission_start_time = 0
+        self._obstacle_detected = False
+        self._timeLast_obstacleDetected = None
+        self._elapsed_time_connexion = time.time() - self._start_time
+        self._elapsed_time_mission = 0
+        self._mission_running = False
 
-    # Will update the switch. We enumerate every value in the vehicle.channels dictionnary, and set switch mode
+    # Will update the switch. We enumerate every value in the vehicle.channels dictionary, and set switch mode
     # according to the mapping
     def update_switch_states(self):
         for index, (key, value) in enumerate(self.vehicle.channels.items()):
@@ -80,6 +84,11 @@ class InspectionDrone(object):
                     self.switches[int(key)].set_state("middle")
                 if 1800 < value:
                     self.switches[int(key)].set_state("up")
+
+    def update_time(self):
+        self._elapsed_time_connexion = time.time() - self._start_time
+        if self._mission_running:
+            self._elapsed_time_mission = time.time() - self._mission_start_time
 
     def print_switches_states(self):
         print(' ; '.join("{}: {}".format(k, v) for k, v in self.switches.items()))
@@ -127,6 +136,15 @@ class InspectionDrone(object):
     def is_in_guided_mode(self):
         return self.mode == VehicleMode("GUIDED")
 
+    def is_mission_running(self):
+        return self._mission_running
+
+    def launch_mission(self):
+        self._mission_start_time = time.time()
+        self._mission_running = True
+
+    def abort_mission(self):
+        self._mission_running = False
 
 class Switch(object):
     """
@@ -135,6 +153,7 @@ class Switch(object):
     """
 
     def __init__(self, number_of_states=None, initial_state=None):
+        self._time_last_updated = time.time()
         if number_of_states is None:
             self.number_of_states = 3
         else:
@@ -152,9 +171,13 @@ class Switch(object):
             raise ValueError("set_state string argument must be either up, middle or down")
 
         if self.number_of_states == 3:
+            if self.state != state:
+                self._time_last_updated = time.time()
             self.state = state
 
         elif self.number_of_states == 2 and state != "middle":
+            if self.state != state:
+                self._time_last_updated = time.time()
             self.state = state
 
         else:
@@ -170,3 +193,12 @@ class Switch(object):
         if self.number_of_states == 2:
             warnings.warn("Warning : you tried to check whether a 2 state switch could be in the middle state")
         return self.state == "middle"
+
+    def was_updated_since(self, amount_of_time):
+        """
+        Function that checks if a switch was updated since amount_of_time time.
+        Used mainly to avoid making multiple unwanted inputs.
+        :param amount_of_time: an amount of time in seconds. Use decimal for time under a second
+        :return: True: was updated since amount_of time, False, was no updated since amount_of_time
+        """
+        return time.time() - self._time_last_updated > amount_of_time

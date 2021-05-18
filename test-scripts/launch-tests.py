@@ -4,7 +4,6 @@ import time
 import RPi.GPIO as GPIO
 from RangeSensors import *
 
-print "i work"
 # Select GPIO mode
 GPIO.setmode(GPIO.BCM)
 # Set buzzer - pin 23 as output
@@ -41,7 +40,7 @@ totalTime = 4 * sideLength / speedTest2
 use_sonar = False
 use_lidar = True
 sonar = Sonar(200)
-lidar = Lidar(300)
+lidar = Lidar(30)
 
 
 # Management of RC Channels to launch code
@@ -73,15 +72,6 @@ def RC_CHANNEL_listener(vehicle, name, message):
     set_rc(vehicle, 15, message.chan15_raw)
     set_rc(vehicle, 16, message.chan16_raw)
     vehicle.notify_attribute_listeners('channels', vehicle.channels)
-
-    if message.chan7_raw > 1500:
-        print("Obstacle Detected !")
-        inspection_drone.obstacleDetected = True
-        inspection_drone.timeLastObstacleDetected = time.time()
-
-    if message.chan7_raw < 1500 and inspection_drone.obstacleDetected:
-        print("No obstacle anymore !")
-        inspection_drone.obstacleDetected = False
 
     if 0 < message.chan6_raw < 1200:
         vehicle.selectedTest = 0

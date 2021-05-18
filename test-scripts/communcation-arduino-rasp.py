@@ -1,4 +1,10 @@
 from RangeSensors import *
+import RPi.GPIO as GPIO
+# Select GPIO mode
+GPIO.setmode(GPIO.BCM)
+# Set buzzer - pin 23 as output
+buzzer = 23
+GPIO.setup(buzzer, GPIO.OUT)
 
 def obstacle_Detected(mySonar, myLidar, debug = False):
     """ Function that takes as input two objects of type sonar and lidar
@@ -37,4 +43,3 @@ runningTime = 5 # Time in s for which we collect the data
 print "tu fais quoi la"
 while time.time() - S.startTime < runningTime:
     if obstacle_Detected(S, L, True):
-        print("\\n TU VAS TE PRENDRE LE MUR !! \\n")
