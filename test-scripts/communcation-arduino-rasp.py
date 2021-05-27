@@ -36,10 +36,10 @@ def obstacle_Detected(mySonar, myLidar, use_lidar, use_sonar, debug=False):
 # We start by initializing our 2 sensors.
 # We can give as parameter the critical distance of the sensor (under which we detect an obstacle)
 # By default, the critical distance is 50 cm
-S = Sonar(30)
+S = Sonar(50)
 L = Lidar(30)
-mesure_lidar = True
-mesure_sonar = False
+mesure_lidar = False
+mesure_sonar = True
 
 runningTime = 60 # Time in s for which we collect the data
 while time.time() - S.startTime < runningTime:

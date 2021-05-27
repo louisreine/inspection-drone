@@ -1,13 +1,17 @@
 import warnings
 from dronekit import connect, VehicleMode, Vehicle
 from pymavlink import mavutil
+import RangeSensors
 import time
 import RPi.GPIO as GPIO
 
 
 class InspectionDrone(object):
-    def __init__(self, connection_string, baudrate, two_way_switches, three_way_switches, buzzer_pin=None):
+    def __init__(self, connection_string, baudrate, two_way_switches, three_way_switches, buzzer_pin=None, critical_distance_sonar=40, critical_distance_lidar=30):
+        """
 
+        :rtype: object
+        """
         # Initialize buzzer, making sure it is down
         if buzzer_pin is None:
             self._buzzerPin = 23
@@ -61,10 +65,15 @@ class InspectionDrone(object):
         self._start_time = time.time()
         self._mission_start_time = 0
         self._obstacle_detected = False
-        self._timeLast_obstacleDetected = None
+        self._time_last_obstacle_detected = None
         self._elapsed_time_connexion = time.time() - self._start_time
         self._elapsed_time_mission = 0
         self._mission_running = False
+        self._sonar = RangeSensors.Sonar(critical_distance_sonar)
+        self._lidar = RangeSensors.Lidar(critical_distance_lidar)
+
+    def __del__(self):
+        GPIO.output(self._buzzerPin, GPIO.LOW)
 
     # Will update the switch. We enumerate every value in the vehicle.channels dictionary, and set switch mode
     # according to the mapping
@@ -84,6 +93,30 @@ class InspectionDrone(object):
                     self.switches[int(key)].set_state("middle")
                 if 1800 < value:
                     self.switches[int(key)].set_state("up")
+
+    def update_detection(self, use_sonar = False, use_lidar = True, debug = False):
+
+        read_serial = RangeSensors.readSensorsLine()
+        if self._sonar.read_distance(read_serial) and debug:
+            print "Sonar range:" + str(self._lidar.get_distance())
+        if self._lidar.read_distance(read_serial) and debug:
+            print "Lidar range:" + str(self._lidar.get_distance())
+        if (self._sonar.critical_Distance_Reached() and use_sonar) or (use_lidar and self._lidar.critical_Distance_Reached()):
+
+            if self.obstacle_detected():
+                self._time_last_obstacle_detected = time.time()
+            self._obstacle_detected = True
+
+        else: self._obstacle_detected = False
+
+    def time_since_last_obstacle_detected(self):
+        if self._time_last_obstacle_detected == None or self.obstacle_detected():
+            return -1
+        else:
+            return time.time() - self._time_last_obstacle_detected
+
+    def obstacle_detected(self):
+        return self._obstacle_detected
 
     def update_time(self):
         self._elapsed_time_connexion = time.time() - self._start_time
@@ -124,19 +157,25 @@ class InspectionDrone(object):
 
     def send_mavlink_go_backward(self, velocity):
         print "Going backward"
-        self.send_ned_velocity(-velocity, 0, 0)
+        self._send_ned_velocity(-velocity, 0, 0)
 
     def send_mavlink_stay_stationary(self):
         print "Stopping"
-        self.send_ned_velocity(0, 0, 0)
+        self._send_ned_velocity(0, 0, 0)
 
     def is_in_auto_mode(self):
-        return self.mode == VehicleMode("AUTO")
+        return self.vehicle.mode == VehicleMode("AUTO")
 
     def is_in_guided_mode(self):
-        return self.mode == VehicleMode("GUIDED")
+        return self.vehicle.mode == VehicleMode("GUIDED")
 
-    def is_mission_running(self):
+    def set_auto_mode(self):
+        self.vehicle.mode = VehicleMode("AUTO")
+
+    def set_guided_mode(self):
+        self.vehicle.mode = VehicleMode("GUIDED")
+
+    def mission_running(self):
         return self._mission_running
 
     def launch_mission(self):
@@ -145,6 +184,23 @@ class InspectionDrone(object):
 
     def abort_mission(self):
         self._mission_running = False
+
+    def buzz(self, freq = 1):
+        if int(time.time() * freq) % 2 == 0:
+            GPIO.output(self._buzzerPin, GPIO.HIGH)
+        if int(time.time() * freq) % 2 == 1:
+            GPIO.output(self._buzzerPin, GPIO.LOW)
+
+    def time_since_mission_launch(self):
+        return self._elapsed_time_mission
+
+    def stop_buzz(self):
+        GPIO.output(self._buzzerPin, GPIO.LOW)
+
+    def set_flight_mode(self, flightmode):
+
+        self.vehicle.mode = flightmode
+
 
 class Switch(object):
     """

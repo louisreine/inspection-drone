@@ -225,7 +225,7 @@ while True:
         if inspection_drone.obstacleDetected:
             if not is_in_guided_mode(inspection_drone):
                 inspection_drone.mode = VehicleMode("GUIDED")
-                inspection_drone.testNumber = -1
+
 
             if int(time.time() * 2) % 2 == 0:
                 GPIO.output(buzzer, GPIO.HIGH)
