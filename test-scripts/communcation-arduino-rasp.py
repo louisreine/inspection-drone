@@ -1,4 +1,4 @@
-from RangeSensors import *
+from Range_SensorsP2 import *
 import RPi.GPIO as GPIO
 # Select GPIO mode
 GPIO.setmode(GPIO.BCM)
@@ -6,14 +6,14 @@ GPIO.setmode(GPIO.BCM)
 buzzer = 23
 GPIO.setup(buzzer, GPIO.OUT)
 
-def obstacle_Detected(mySonar, myLidar, use_lidar, use_sonar, debug=False):
+def obstacle_Detected(mySonar, myLidar, use_lidar, use_sonar, debug=False, filtre = True):
     """ Function that takes as input two objects of type sonar and lidar
     and that returns True if the distance they read is inferior to the critical distance defined for each of them
     The param debug has to be set to True if you want the data to be printed when uptdated"""
     read_serial = readSensorsLine()
-    if mySonar.read_distance(read_serial) and debug:
+    if mySonar.read_distance(read_serial, filtrage = filtre) and debug:
         print "Sonar range:" + str(mySonar.get_distance())
-    if myLidar.read_distance(read_serial) and debug:
+    if myLidar.read_distance(read_serial, filtrage = filtre) and debug:
         print "Lidar range:" + str(myLidar.get_distance())
     if (mySonar.critical_Distance_Reached() and use_sonar) or (use_lidar and myLidar.critical_Distance_Reached()):
         return True
@@ -40,15 +40,17 @@ S = Sonar(50)
 L = Lidar(30)
 mesure_lidar = False
 mesure_sonar = True
+utilisation_filtre = True
 
 runningTime = 60 # Time in s for which we collect the data
 while time.time() - S.startTime < runningTime:
-    if obstacle_Detected(S,L,mesure_lidar,mesure_sonar,True):
+    if obstacle_Detected(S,L,mesure_lidar,mesure_sonar,debug = True, filtre = utilisation_filtre):
 
         if int(time.time() * 2) % 2 == 0:
             GPIO.output(buzzer, GPIO.HIGH)
         if int(time.time() * 2) % 2 == 1:
             GPIO.output(buzzer, GPIO.LOW)
+        print("\\n TU VAS TE PRENDRE LE MUR !! \\n")
 
     else :
         GPIO.output(buzzer, GPIO.LOW)
